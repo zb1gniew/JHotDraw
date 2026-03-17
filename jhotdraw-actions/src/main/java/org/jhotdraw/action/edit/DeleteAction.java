@@ -9,7 +9,6 @@ package org.jhotdraw.action.edit;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import javax.swing.JComponent;
 import javax.swing.text.*;
@@ -64,7 +63,7 @@ public class DeleteAction extends TextAction {
     /**
      * This variable keeps a strong reference on the property change listener.
      */
-    private PropertyChangeListener propertyHandler;
+    private transient PropertyChangeListener propertyHandler;
 
     /**
      * Creates a new instance which acts on the currently focused component.
@@ -89,17 +88,15 @@ public class DeleteAction extends TextAction {
      * @param target The target of the action. Specify null for the currently
      * focused component.
      */
-    protected DeleteAction(JComponent target, String id) {
+protected DeleteAction(JComponent target, String id) {
         super(id);
         this.target = target;
         if (target != null) {
             // Register with a weak reference on the JComponent.
-            propertyHandler = new PropertyChangeListener() {
-                @Override
-                public void propertyChange(PropertyChangeEvent evt) {
-                    if ("enabled".equals(evt.getPropertyName())) {
-                        setEnabled((Boolean) evt.getNewValue());
-                    }
+            // REFACTORED: Converted anonymous PropertyChangeListener to a lambda expression
+            propertyHandler = evt -> {
+                if ("enabled".equals(evt.getPropertyName())) {
+                    setEnabled((Boolean) evt.getNewValue());
                 }
             };
             target.addPropertyChangeListener(new WeakPropertyChangeListener(propertyHandler));
