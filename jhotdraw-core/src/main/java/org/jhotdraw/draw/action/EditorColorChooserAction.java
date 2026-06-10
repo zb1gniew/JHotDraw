@@ -27,7 +27,7 @@ public class EditorColorChooserAction extends AttributeAction {
 
     private static final long serialVersionUID = 1L;
     protected AttributeKey<Color> key;
-    protected static JColorChooser colorChooser;
+    protected JColorChooser colorChooser;
 
     /**
      * Creates a new instance.
@@ -66,19 +66,33 @@ public class EditorColorChooserAction extends AttributeAction {
 
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
-        if (colorChooser == null) {
-            colorChooser = new JColorChooser();
-        }
-        Color initialColor = getInitialColor();
-        // FIXME - Reuse colorChooser object instead of calling static method here.
-        ResourceBundleUtil labels
-                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
-        Color chosenColor = JColorChooser.showDialog((Component) e.getSource(), labels.getString("attribute.color.text"), initialColor);
+        Color chosenColor = showColorChooserDialog(
+            (Component) e.getSource(), getInitialColor()
+        );
         if (chosenColor != null) {
             HashMap<AttributeKey<?>, Object> attr = new HashMap<>(attributes);
             attr.put(key, chosenColor);
             applyAttributesTo(attr, getView().getSelectedFigures());
         }
+    }
+
+        protected Color showColorChooserDialog(Component parent, Color initialColor) {
+        if (colorChooser == null) {
+            colorChooser = new JColorChooser();
+        }
+        colorChooser.setColor(initialColor);
+        ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+        final Color[] result = {null};
+        JDialog dialog = JColorChooser.createDialog(
+            parent,
+            labels.getString("attribute.color.text"),
+            true,
+            colorChooser,
+            ev -> result[0] = colorChooser.getColor(),
+            null
+        );
+        dialog.setVisible(true);
+        return result[0];
     }
 
     public void selectionChanged(FigureSelectionEvent evt) {

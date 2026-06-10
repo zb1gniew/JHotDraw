@@ -64,9 +64,8 @@ public class DrawingColorChooserAction extends EditorColorChooserAction {
             colorChooser = new JColorChooser();
         }
         Color initialColor = getInitialColor();
-        // FIXME - Reuse colorChooser object instead of calling static method here.
-        ResourceBundleUtil labels
-                = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+
+        ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
         Color chosenColor = JColorChooser.showDialog((Component) e.getSource(), labels.getString("attribute.color.text"), initialColor);
         if (chosenColor != null) {
             HashMap<AttributeKey<?>, Object> attr = new HashMap<>(attributes);
@@ -74,7 +73,7 @@ public class DrawingColorChooserAction extends EditorColorChooserAction {
             HashSet<Figure> figures = new HashSet<>();
             figures.add(getView().getDrawing());
             applyAttributesTo(attr, figures);
-        }
+    }
     }
 
     @Override
