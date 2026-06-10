@@ -21,8 +21,13 @@ jobs:
         cache: maven
 
     - name: Build with Maven
-      run: mvn -B package --file pom.xml
+      run: mvn -B -s .maven-settings.xml --update-snapshots -DskipTests package --file pom.xml
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Update dependency graph
-      uses: actions/dependency-review-action@v3
-      if: github.event_name == 'pull_request'
+    - name: Run tests with Maven
+      run: mvn -B -s .maven-settings.xml test --file pom.xml
+      env:
+        GITHUB_ACTOR: ${{ github.actor }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

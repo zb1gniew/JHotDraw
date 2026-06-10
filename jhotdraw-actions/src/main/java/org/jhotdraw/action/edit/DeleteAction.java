@@ -65,6 +65,7 @@ public class DeleteAction extends TextAction {
      */
     private transient PropertyChangeListener propertyHandler;
 
+    private static final String PROP_ENABLED = "enabled";
     /**
      * Creates a new instance which acts on the currently focused component.
      */
@@ -95,7 +96,7 @@ protected DeleteAction(JComponent target, String id) {
             // Register with a weak reference on the JComponent.
             // REFACTORED: Converted anonymous PropertyChangeListener to a lambda expression
             propertyHandler = evt -> {
-                if ("enabled".equals(evt.getPropertyName())) {
+                if (PROP_ENABLED.equals(evt.getPropertyName())) {
                     setEnabled((Boolean) evt.getNewValue());
                 }
             };
@@ -108,10 +109,10 @@ protected DeleteAction(JComponent target, String id) {
     @Override
     public void actionPerformed(ActionEvent evt) {
         JComponent c = target;
-        if (c == null && (KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                getPermanentFocusOwner() instanceof JComponent)) {
-            c = (JComponent) KeyboardFocusManager.getCurrentKeyboardFocusManager().
-                    getPermanentFocusOwner();
+        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .getPermanentFocusOwner();
+        if (c == null && focusOwner instanceof JComponent) {
+            c = (JComponent) focusOwner;
         }
         if (c != null && c.isEnabled()) {
             if (c instanceof EditableComponent) {
@@ -128,26 +129,27 @@ protected DeleteAction(JComponent target, String id) {
      */
     public void deleteNextChar(ActionEvent e) {
         JTextComponent c = getTextComponent(e);
-        boolean beep = true;
-        if ((c != null) && (c.isEditable())) {
-            try {
-                javax.swing.text.Document doc = c.getDocument();
-                Caret caret = c.getCaret();
-                int dot = caret.getDot();
-                int mark = caret.getMark();
-                if (dot != mark) {
-                    doc.remove(Math.min(dot, mark), Math.abs(dot - mark));
-                    beep = false;
-                } else if (dot < doc.getLength()) {
-                    doc.remove(dot, 1);
-                    beep = false;
-                }
-            } catch (BadLocationException bl) {
-                // allowed empty
-            }
-        }
-        if (beep) {
+        if (c != null && c.isEditable() && !removeSelectedText(c)) {
             Toolkit.getDefaultToolkit().beep();
         }
+    }
+
+    private boolean removeSelectedText(JTextComponent c) {
+        try {
+            javax.swing.text.Document doc = c.getDocument();
+            Caret caret = c.getCaret();
+            int dot = caret.getDot();
+            int mark = caret.getMark();
+            if (dot != mark) {
+                doc.remove(Math.min(dot, mark), Math.abs(dot - mark));
+                return true;
+            } else if (dot < doc.getLength()) {
+                doc.remove(dot, 1);
+                return true;
+            }
+        } catch (BadLocationException bl) {
+            // allowed empty
+        }
+        return false;
     }
 }
