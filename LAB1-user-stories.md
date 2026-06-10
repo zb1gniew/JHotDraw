@@ -1,6 +1,4 @@
-# User Stories
-
-### User Story 1 - Select All Figures
+### User Story: Select All Figures
 
 As a drawing application user, I want to select all figures on the canvas at once, so that I do not have to click each figure individually.
 
