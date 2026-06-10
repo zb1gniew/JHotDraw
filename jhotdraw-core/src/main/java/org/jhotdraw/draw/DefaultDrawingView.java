@@ -850,6 +850,8 @@ public class DefaultDrawingView
             }
         }
         Set<Figure> newSelection = new HashSet<>(selectedFigures);
+        assert selectedFigures.size() <= drawing.getChildren().size()
+                : "selectAll() selected more figures than the drawing contains";
         invalidateHandles();
         fireSelectionChanged(oldSelection, newSelection);
         repaint();
