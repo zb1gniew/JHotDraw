@@ -51,7 +51,11 @@ public abstract class AlignAction extends AbstractSelectedAction {
     public void actionPerformed(java.awt.event.ActionEvent e) {
         CompositeEdit edit = new CompositeEdit(labels.getString("edit.align.text"));
         fireUndoableEditHappened(edit);
-        alignFigures(getView().getSelectedFigures(), getSelectionBounds());
+        Rectangle2D.Double selectionBounds = getSelectionBounds();
+        // The action is only enabled with more than one figure selected, so the
+        // bounds can never be null here.
+        assert selectionBounds != null : "selectionBounds must not be null while aligning a non-empty selection";
+        alignFigures(getView().getSelectedFigures(), selectionBounds);
         fireUndoableEditHappened(edit);
     }
 
