@@ -1,11 +1,5 @@
 # Lab 6 – Refactoring
 
-## Feature: Select All Figures
-
-Same feature as Labs 2–4. The user presses Ctrl+A or picks Edit → Select All and every figure on the canvas gets selected.
-
----
-
 ## Finding Code Smells with SonarLint
 
 I installed SonarLint and ran it on the modules I touched during Labs 3 and 4. Two things lit up straight away on DefaultDrawingView. One rule flagged that a method has an identical copy somewhere else in the codebase, and another flagged that the class is too large. I also noticed a third problem by hand while reading SelectAllAction during Lab 3.
