@@ -60,20 +60,16 @@ public class DrawingColorChooserAction extends EditorColorChooserAction {
 
     @Override
     public void actionPerformed(java.awt.event.ActionEvent e) {
-        if (colorChooser == null) {
-            colorChooser = new JColorChooser();
-        }
-        Color initialColor = getInitialColor();
-
-        ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
-        Color chosenColor = JColorChooser.showDialog((Component) e.getSource(), labels.getString("attribute.color.text"), initialColor);
+        Color chosenColor = showColorChooserDialog(
+            (Component) e.getSource(), getInitialColor()
+        );
         if (chosenColor != null) {
             HashMap<AttributeKey<?>, Object> attr = new HashMap<>(attributes);
             attr.put(key, chosenColor);
             HashSet<Figure> figures = new HashSet<>();
             figures.add(getView().getDrawing());
             applyAttributesTo(attr, figures);
-    }
+        }
     }
 
     @Override
