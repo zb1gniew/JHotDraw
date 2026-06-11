@@ -2,52 +2,78 @@
 
 ## Finding Code Smells with SonarLint
 
-I installed SonarLint and ran it on the modules I touched during Labs 3 and 4. Two things lit up straight away on DefaultDrawingView. One rule flagged that a method has an identical copy somewhere else in the codebase, and another flagged that the class is too large. I also noticed a third problem by hand while reading SelectAllAction during Lab 3.
+I installed SonarLint and ran it on the classes that sit inside my Select All Figures feature footprint from Labs 3 and 4: SelectAllAction, AbstractSelectionAction, and the EditableComponent contract between them. Two things lit up. On AbstractSelectionAction it flagged two identical branches in the listener that enables the menu item, and on SelectAllAction it flagged wildcard imports in the entry-point class.
 
 ---
 
 ## Code Smells
 
-### Smell 1 – Duplicate Code
+### Smell 1 – Duplicated Branches
 
-The selectAll() method appears twice with the exact same body. Both AbstractDrawingView.java at line 604 and DefaultDrawingView.java at line 844 contain this:
+File: AbstractSelectionAction.java, inside the property change listener at line 71. This listener is what enables and greys out the Select All menu item when the selection changes.
 
-Code in portfolio.
+Before:
 
-I already noted this in Lab 4: "the two copies are identical line for line." The problem is that if this logic ever needs to change, someone has to remember to update both places. If they only change one, the two view classes will behave differently without any compiler warning.
+```java
+String n = evt.getPropertyName();
+if ("enabled".equals(n)) {
+    updateEnabled();
+} else if (n.equals(EditableComponent.SELECTION_EMPTY_PROPERTY)) {
+    updateEnabled();
+}
+```
 
-### Refactoring of Code Smell 1 – Pull Up Method
+Why this is a smell: both branches do the exact same thing, call updateEnabled(), so the split just makes the reader check both to confirm they match. SonarLint flags this as rule S3923 (all branches with identical code). A second, smaller issue: the else if is written as n.equals(CONSTANT), which throws a NullPointerException if n is null.
 
-Make AbstractDrawingView extend JComponent, then change DefaultDrawingView to extend AbstractDrawingView instead of JComponent directly. Once that inheritance is in place, delete the duplicate selectAll() from DefaultDrawingView (lines 840–856) — it gets inherited from AbstractDrawingView and only one copy exists.
+### Refactoring of Code Smell 1 – Consolidate Conditional Expression
+
+The fix is to keep one if and one call to updateEnabled(), and join the two conditions with || (logical OR). While doing that I also flip the second check to CONSTANT.equals(n) so the constant is on the left, that version can never throw on a null, because the constant is never null.
+
+After:
+
+```java
+String n = evt.getPropertyName();
+if ("enabled".equals(n) || EditableComponent.SELECTION_EMPTY_PROPERTY.equals(n)) {
+    updateEnabled();
+}
+```
+
+Tthe duplicated call is gone, the intent ("refresh enabled state when either of these two properties changes") is now readable on a single line, and the null risk is removed. The behaviour is exactly the same as before for every input.
 
 ---
 
-### Smell 2 – Magic Numbers
+### Smell 2 – Wildcard Imports
 
-Inside DefaultDrawingView.getBackgroundPaint() at line 1474 there are several raw numbers with no names:
+File: SelectAllAction.java, the import block at lines 10-15. This is the entry-point class of the feature, the action that runs when the user presses Ctrl+A.
 
-Code in portfolio.
+Before:
 
-Reading this, 16, 8, and 0xdfdfdf mean nothing without digging into what the method is doing. 16 is the tile size, 8 is half of that, and 0xdfdfdf is the grey colour of the checkerboard background. If the tile size ever needs to change, every hardcoded 16 and 8 needs to be tracked down manually. The fix is simple — give them names:
+```java
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import javax.swing.text.*;
+import org.jhotdraw.api.gui.EditableComponent;
+import org.jhotdraw.util.*;
+```
 
-Code in portfolio.
+Why this is a smell: the four * imports pull in whole packages instead of the five types actually used (ActionEvent, KeyboardFocusManager, JComponent, JTextComponent, ResourceBundleUtil), so they hide what the class really depends on and risk a name clash if two packages share a class name. SonarLint flags this as rule S2208 (wildcard imports should not be used).
 
-### Refactoring of Code Smell 2 – Replace Magic Literal
+### Refactoring of Code Smell 2 – Replace Wildcard Imports with Explicit Imports
 
-Declare the three constants above in DefaultDrawingView and replace every occurrence of 16, 8, and 0xdfdfdf in getBackgroundPaint() with TILE_SIZE, HALF_TILE, and TILE_GREY.
+The fix is to delete the wildcard imports and replace each one with a single explicit import for the exact type that is used. Nothing in the body of the class changes, only the import block.
 
----
+After:
 
-### Smell 3 – Switch Statements
+```java
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import javax.swing.JComponent;
+import javax.swing.text.JTextComponent;
+import org.jhotdraw.api.gui.EditableComponent;
+import org.jhotdraw.util.ResourceBundleUtil;
+```
 
-In SelectAllAction.actionPerformed() at line 82, the code checks what type the focused component is before deciding what to do:
-
-Code in portfolio.
-
-Both branches do the same thing — call selectAll() — but because JTextComponent and EditableComponent are unrelated types, there is no single call that covers both. The clean fix would be to have all selectable components share one interface so the chain collapses to a single call. The problem here is that JTextComponent comes from Swing and cannot be changed to implement EditableComponent, so the smell is partly stuck.
-
-### Refactoring of Code Smell 3 – Replace Conditional with Polymorphism
-
-Wrap JTextComponent in an adapter class that implements EditableComponent and delegates selectAll() to JTextComponent.selectAll(). The instanceof chain then collapses to a single cast to EditableComponent regardless of what the underlying component is.
+Why it is better: the imports now document exactly what the class depends on, and the name-clash risk is gone. This is purely a compile-time change, so it has no effect on how the program runs.
 
 ---

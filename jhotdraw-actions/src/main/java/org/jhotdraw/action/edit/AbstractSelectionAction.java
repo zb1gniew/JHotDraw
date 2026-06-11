@@ -69,9 +69,7 @@ public abstract class AbstractSelectionAction extends AbstractAction {
                 @Override
                 public void propertyChange(PropertyChangeEvent evt) {
                     String n = evt.getPropertyName();
-                    if ("enabled".equals(n)) {
-                        updateEnabled();
-                    } else if (n.equals(EditableComponent.SELECTION_EMPTY_PROPERTY)) {
+                    if ("enabled".equals(n) || EditableComponent.SELECTION_EMPTY_PROPERTY.equals(n)) {
                         updateEnabled();
                     }
                 }

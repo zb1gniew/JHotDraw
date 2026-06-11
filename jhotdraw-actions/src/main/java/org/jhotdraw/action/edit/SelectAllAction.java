@@ -7,12 +7,12 @@
  */
 package org.jhotdraw.action.edit;
 
-import java.awt.*;
-import java.awt.event.*;
-import javax.swing.*;
-import javax.swing.text.*;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
+import javax.swing.JComponent;
+import javax.swing.text.JTextComponent;
 import org.jhotdraw.api.gui.EditableComponent;
-import org.jhotdraw.util.*;
+import org.jhotdraw.util.ResourceBundleUtil;
 
 /**
  * Selects all items.
