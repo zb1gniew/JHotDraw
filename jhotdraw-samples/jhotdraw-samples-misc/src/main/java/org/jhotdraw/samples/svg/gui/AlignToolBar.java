@@ -44,7 +44,7 @@ public class AlignToolBar extends AbstractToolBar {
         super.setEditor(newValue);
         if (newValue != null) {
             displayer = new SelectionComponentDisplayer(editor, this);
-            displayer.setMinSelectionCount(2);
+            displayer.setMinSelectionCount(AlignAction.MIN_SELECTION_COUNT);
             displayer.setVisibleIfCreationTool(false);
         }
     }

@@ -172,7 +172,7 @@ public abstract class AbstractDrawingViewAction extends AbstractAction implement
      * Returns true, if this action automatically updates its enabled
      * state to reflect the enabled state of the active {@code DrawingView}.
      */
-    public boolean isUpdatEnabledState() {
+    public boolean isUpdateEnabledState() {
         return eventHandler != null;
     }
 
